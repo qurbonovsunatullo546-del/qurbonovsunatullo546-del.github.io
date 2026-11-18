@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Запись на сессию — Елена Власова</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#faf6ef; --surface:#fff; --beige:#efe6d8; --sage:#a9b8a3; --sage-deep:#6f836a;
+  --text:#3a3631; --muted:#7a7468; --line:#e6dccb; --on-accent:#fff;
+  color-scheme:light;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#1f1d1a; --surface:#2a2723; --beige:#2f2b26; --sage:#7f9079; --sage-deep:#b4c4ad;
+    --text:#f0e9dd; --muted:#b0a898; --line:#3b362f; --on-accent:#1f1d1a; color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#1f1d1a; --surface:#2a2723; --beige:#2f2b26; --sage:#7f9079; --sage-deep:#b4c4ad;
+  --text:#f0e9dd; --muted:#b0a898; --line:#3b362f; --on-accent:#1f1d1a; color-scheme:dark;
+}
+*,*::before,*::after{box-sizing:inherit}
+body{margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:32px 16px;background:var(--bg);color:var(--text);font-family:Inter,system-ui,-apple-system,"Segoe UI",sans-serif;font-weight:300;line-height:1.6}
+
+.booking{width:100%;max-width:460px;background:var(--surface);border:1px solid var(--line);border-radius:28px;padding:36px 30px;box-shadow:0 30px 60px -40px rgba(80,70,50,.35)}
+.booking h2{font-family:"Cormorant Garamond",Georgia,serif;font-weight:400;font-size:34px;line-height:1.1;margin:0 0 6px}
+.booking .sub{margin:0 0 28px;color:var(--muted);font-size:14px}
+.label{font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);margin:0 0 12px}
+
+.days{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:28px}
+.day{font:inherit;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:2px;padding:12px 0;background:transparent;color:var(--text);border:1px solid var(--line);border-radius:16px;transition:background .25s,border-color .25s,color .25s,transform .25s}
+.day small{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.day b{font-family:"Cormorant Garamond",Georgia,serif;font-weight:500;font-size:26px;line-height:1.1}
+.day:hover{border-color:var(--sage);transform:translateY(-2px)}
+.day.active{background:var(--beige);border-color:var(--sage-deep)}
+.day.active small{color:var(--sage-deep)}
+
+.slots{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;min-height:56px}
+.slot{font:inherit;font-size:16px;cursor:pointer;padding:13px 0;background:transparent;color:var(--text);border:1px solid var(--line);border-radius:999px;transition:all .25s;animation:in .4s ease both}
+.slot:hover:not(:disabled){border-color:var(--sage-deep)}
+.slot.active{background:var(--sage-deep);border-color:var(--sage-deep);color:var(--on-accent)}
+.slot:disabled{opacity:.35;cursor:not-allowed;text-decoration:line-through}
+.hint{grid-column:1/-1;margin:0;color:var(--muted);font-size:14px;padding:14px 0}
+@keyframes in{from{opacity:0;transform:translateY(8px)}}
+
+.chosen{min-height:30px;margin:28px 0 18px;padding-top:20px;border-top:1px solid var(--line);font-size:16px}
+.chosen span{color:var(--sage-deep);font-weight:500}
+.confirm{width:100%;font:inherit;font-size:15px;font-weight:400;letter-spacing:.04em;padding:15px;border:0;border-radius:999px;background:var(--sage-deep);color:var(--on-accent);cursor:pointer;transition:transform .3s,box-shadow .3s,opacity .3s}
+.confirm:hover:not(:disabled){transform:translateY(-2px);box-shadow:0 12px 24px -12px var(--sage-deep)}
+.confirm:disabled{opacity:.4;cursor:not-allowed}
+.done{display:none;text-align:center;padding:20px 0 6px}
+.done .tick{width:54px;height:54px;border-radius:50%;background:var(--beige);color:var(--sage-deep);display:grid;place-items:center;margin:0 auto 16px;font-size:26px}
+.done h3{font-family:"Cormorant Garamond",Georgia,serif;font-weight:400;font-size:30px;margin:0 0 8px}
+.done p{margin:0 0 20px;color:var(--muted)}
+.link{background:none;border:0;font:inherit;color:var(--sage-deep);text-decoration:underline;cursor:pointer}
+
+@media (max-width:420px){
+  .booking{padding:28px 18px;border-radius:24px}
+  .days{gap:6px}
+  .day b{font-size:22px}
+}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+
+<div class="booking" id="booking">
+  <div id="form">
+    <h2>Запись на сессию</h2>
+    <p class="sub">Индивидуальная сессия · 50 минут · 4000 ₽</p>
+
+    <p class="label">Выберите день</p>
+    <div class="days" id="days" role="group" aria-label="День"></div>
+
+    <p class="label">Выберите время</p>
+    <div class="slots" id="slots" role="group" aria-label="Время">
+      <p class="hint">Сначала выберите день</p>
+    </div>
+
+    <div class="chosen" id="chosen" aria-live="polite"></div>
+    <button class="confirm" id="confirm" disabled>Подтвердить запись</button>
+  </div>
+
+  <div class="done" id="done">
+    <div class="tick">✓</div>
+    <h3>Вы записаны</h3>
+    <p id="doneText"></p>
+    <button class="link" id="again">Выбрать другое время</button>
+  </div>
+</div>
+
+<script>
+(function(){
+  // ---- Настройки ----
+  var TIMES = ['12:00','14:00','16:00','18:00'];
+  var DAYS_COUNT = 5;                      // сколько ближайших рабочих дней показывать
+  var BUSY = {};                           // занятые слоты: {'2026-10-19':['14:00']}
+
+  var WD = ['Вс','Пн','Вт','Ср','Чт','Пт','Сб'];
+  var MONTHS = ['января','февраля','марта','апреля','мая','июня','июля','августа','сентября','октября','ноября','декабря'];
+
+  var daysEl = document.getElementById('days'),
+      slotsEl = document.getElementById('slots'),
+      chosenEl = document.getElementById('chosen'),
+      confirmBtn = document.getElementById('confirm'),
+      formEl = document.getElementById('form'),
+      doneEl = document.getElementById('done'),
+      state = { day: null, time: null };
+
+  function key(d){ return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+
+  // ближайшие рабочие дни, начиная с завтрашнего
+  var list = [], d = new Date();
+  while (list.length < DAYS_COUNT) {
+    d = new Date(d.getFullYear(), d.getMonth(), d.getDate() + 1);
+    if (d.getDay() !== 0 && d.getDay() !== 6) list.push(d);
+  }
+
+  function label(dt){ return WD[dt.getDay()] + ', ' + dt.getDate() + ' ' + MONTHS[dt.getMonth()]; }
+
+  list.forEach(function(dt){
+    var b = document.createElement('button');
+    b.className = 'day'; b.type = 'button';
+    b.innerHTML = '<small>' + WD[dt.getDay()] + '</small><b>' + dt.getDate() + '</b>';
+    b.addEventListener('click', function(){ pickDay(dt, b); });
+    daysEl.appendChild(b);
+  });
+
+  function pickDay(dt, btn){
+    state.day = dt; state.time = null;
+    [].forEach.call(daysEl.children, function(x){ x.classList.remove('active'); });
+    btn.classList.add('active');
+    slotsEl.innerHTML = '';
+    var busy = BUSY[key(dt)] || [];
+    TIMES.forEach(function(t, i){
+      var s = document.createElement('button');
+      s.className = 'slot'; s.type = 'button'; s.textContent = t;
+      s.style.animationDelay = (i * 60) + 'ms';
+      if (busy.indexOf(t) > -1) s.disabled = true;
+      s.addEventListener('click', function(){ pickTime(t, s); });
+      slotsEl.appendChild(s);
+    });
+    update();
+  }
+
+  function pickTime(t, btn){
+    state.time = t;
+    [].forEach.call(slotsEl.children, function(x){ x.classList.remove('active'); });
+    btn.classList.add('active');
+    update();
+  }
+
+  function update(){
+    if (state.day && state.time) {
+      chosenEl.innerHTML = 'Вы выбрали: <span>' + label(state.day) + ' в ' + state.time + '</span>';
+      confirmBtn.disabled = false;
+    } else {
+      chosenEl.textContent = '';
+      confirmBtn.disabled = true;
+    }
+  }
+
+  confirmBtn.addEventListener('click', function(){
+    if (!state.day || !state.time) return;
+    // Здесь можно отправить данные на сервер:
+    // fetch('/api/book', {method:'POST', body: JSON.stringify({date: key(state.day), time: state.time})})
+    document.getElementById('doneText').textContent = label(state.day) + ' в ' + state.time + '. Я свяжусь с вами для подтверждения.';
+    formEl.style.display = 'none'; doneEl.style.display = 'block';
+  });
+
+  document.getElementById('again').addEventListener('click', function(){
+    state = { day: null, time: null };
+    [].forEach.call(daysEl.children, function(x){ x.classList.remove('active'); });
+    slotsEl.innerHTML = '<p class="hint">Сначала выберите день</p>';
+    update();
+    doneEl.style.display = 'none'; formEl.style.display = 'block';
+  });
+})();
+</script>
+</body>
+</html>
